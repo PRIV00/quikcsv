@@ -7,30 +7,35 @@ from .validation import validate
 from .options import apply_options
 
 
-class QuikCSV:
-
-    @staticmethod
-    def one(data, arg=None, opts=None):
-        def outer(func):
-            @wraps(func)
-            def inner(*args, **kwargs):
-                validate(data)
-                data_ = apply_options(data, opts)
-                tmp_csv = io.StringIO()
-                try:
-                    writer = csv.writer(tmp_csv)
+def QuikCSV(datasets):
+    def outer(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            csvs = []
+            validate(datasets)
+            try:
+                for dataset in datasets:
+                    data_ = apply_options(
+                        dataset['data'],
+                        dataset.get('opts')
+                    )
+                    stream = io.StringIO()
+                    writer = csv.writer(stream)
                     writer.writerows(data_)
-                    tmp_csv.seek(0)
-                    if arg:
+                    stream.seek(0)
+                    if dataset.get('arg'):
                         arg_names = inspect.getfullargspec(func).args
-                        index = arg_names.index(arg)
+                        index = arg_names.index(dataset['arg'])
                         args = args[:index] + args[index+1:]
-                        args = args[:index] + (tmp_csv,) + args[index:]
-                        res = func(*args, **kwargs)
+                        args = args[:index] + (stream,) + args[index:]
                     else:
-                        res = func(tmp_csv, *args, **kwargs)
-                finally:
-                    tmp_csv.close()
-                return res
-            return inner
-        return outer
+                        csvs.append(stream)
+                if len(csvs) > 0:
+                    return func(csvs, *args, **kwargs)
+                else:
+                    return func(*args, **kwargs)
+            finally:
+                for stream in csvs:
+                    stream.close()
+        return inner
+    return outer

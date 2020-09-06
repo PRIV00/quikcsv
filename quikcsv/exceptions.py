@@ -14,3 +14,10 @@ class UnevenColumnError(Error):
 
     def __str__(self):
         return f'{self.data} -> {self.message}'
+
+
+class ArgError(Error):
+
+    def __init__(self, message="arg must be specified on all datasets if specified on one."):  # noqa
+        self.message = message
+        super().__init__(self.message)

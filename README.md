@@ -1,5 +1,5 @@
 # QuikCSV
-Python package for quickly creating temporary csv files to help with testing. The CSV file exists in memory only so you can create files on the fly without needing to cleanup or delete files later.
+Python package for quickly creating temporary csv files to help with testing. The CSV file exists in memory only so you can create files on the fly without needing to cleanup or delete files later. No need to use with statements or close resources, that is taken care of.
 
 ## Installation
 
@@ -13,10 +13,12 @@ Take a function that takes an open CSV file as its argument. Instead of creating
 from quikcsv import QuikCSV
 
 
-@QuikCSV.one([
-    ['Column A', 'Column B', 'Column C'],
-    ['100',      '101',      '102']
-])
+@QuikCSV([dict(
+    data=[
+        ['Column A', 'Column B', 'Column C'],
+        ['100',      '101',      '102']
+    ]
+)])
 def csv_func(csv_file):
     # Work with csv file here.
     #
@@ -29,10 +31,13 @@ def csv_func(csv_file):
 If you want, you can specify the argument that the CSV mock file will be passed to.
 ```python
 
-@QuikCSV.one([
-    ['Column A', 'Column B', 'Column C'],
-    ['100',      '101',      '102']
-], arg='csv_file')
+@QuikCSV([dict(
+    data=[
+        ['Column A', 'Column B', 'Column C'],
+        ['100',      '101',      '102']
+    ],
+    arg='csv_file'
+)])
 def csv_func(first_arg, csv_file, third_arg):
     # Mock CSV will be accessible on the csv_file variable.
 
@@ -41,14 +46,17 @@ def csv_func(first_arg, csv_file, third_arg):
 Options can be passed via the opts argument to quickly generate additional rows of data from existing rows.
 ```python
 
-@QuikCSV.one([
-    ['Column A', 'Column B', 'Column C'],
-    ['100',      '101',      '102']
-], opts=dict(
-    add_rows=2,
-    row_pattern='copy',
-    base_row_index=1
-))
+@QuikCSV([dict(
+    data=[
+        ['Column A', 'Column B', 'Column C'],
+        ['100',      '101',      '102']
+    ], 
+    opts=dict(
+        add_rows=2,
+        row_pattern='copy',
+        base_row_index=1
+    )
+)])
 def csv_func(csv_file):
     # Output csv file will look like this:
     # 
@@ -63,14 +71,17 @@ def csv_func(csv_file):
 'copy' is a predefined row creation pattern to make things easy, but you can also pass a custom function
 ```python
 
-@QuikCSV.one([
-    ['Column A', 'Column B', 'Column C'],
-    ['100',      '101',      '102']
-], opts=dict(
-    add_rows=2,
-    row_pattern=lambda x: [n + 1 for n in x],
-    base_row_index=1
-))
+@QuikCSV([dict(
+    data=[
+        ['Column A', 'Column B', 'Column C'],
+        ['100',      '101',      '102']
+    ], 
+    opts=dict(
+        add_rows=2,
+        row_pattern=lambda x: [n + 1 for n in x],
+        base_row_index=1
+    )
+)])
 def csv_func(csv_file):
     # Output csv file will look like this:
     # 
@@ -86,15 +97,17 @@ def csv_func(csv_file):
 The above example applies the same function to the same row again and again, but by setting the 'incremental' option to True, the function will apply the newly created row of data on the next iteration. 
 ```python
 
-@QuikCSV.one([
-    ['Column A', 'Column B', 'Column C'],
-    ['100',      '101',      '102']
-], opts=dict(
-    add_rows=2,
-    row_pattern=lambda x: [n + 1 for n in x],
-    base_row_index=1,
-    incremental=True
-))
+@QuikCSV([dict(
+    data=[
+        ['Column A', 'Column B', 'Column C'],
+        ['100',      '101',      '102']
+    ], 
+    opts=dict(
+        add_rows=2,
+        row_pattern=lambda x: [n + 1 for n in x],
+        base_row_index=1
+    )
+)])
 def csv_func(csv_file):
     # Output csv file will look like this:
     # 
@@ -108,4 +121,3 @@ def csv_func(csv_file):
 
 #### Features in the works
 * Random data generation - completely random or pseudo-random via user defined options
-* Create multiple CSVs by calling a .many() decorator that takes a list of datasets and assigns to a single argument, or several specified arguments.
