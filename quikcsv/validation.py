@@ -1,5 +1,4 @@
 """Handlers for ensuring the mock data passed will work."""
-import types
 
 from .exceptions import UnevenColumnError, ArgError, OptionError
 
