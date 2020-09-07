@@ -8,6 +8,17 @@ from .options import apply_options
 
 
 def QuikCSV(datasets):
+    """
+    Decorator to quickly create temporary CSV mock files. These are passed to
+    specified arguments in the decorated function (or to the first argument by
+    default). These files are used like any other file in Python, but don't
+    need to be opened or closed.
+
+    Parameters
+    ----------
+    datasets: dict[]
+        List of dictionaries which specificy the data to mock in the csv.
+    """
     def outer(func):
         @wraps(func)
         def inner(*args, **kwargs):

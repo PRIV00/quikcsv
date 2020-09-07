@@ -1,11 +1,13 @@
 """Handlers for ensuring the mock data passed will work."""
+import types
 
-from .exceptions import UnevenColumnError, ArgError
+from .exceptions import UnevenColumnError, ArgError, OptionError
 
 
 def _check_col_length(datasets):
     """
-    Ensures the length of all lists in a list of lists are equal.
+    Ensures the length of all data columns are equal within each
+    dataset.
 
     Parameters
     ----------
@@ -28,7 +30,8 @@ def _check_col_length(datasets):
 def _check_arg_consistency(datasets):
     """
     Ensures if arg is specified on one dataset, it is specified on all
-    datasets.
+    datasets. Also checks that the same arg is not reused for multiple
+    csv assignments.
 
     Parameters
     ----------
@@ -41,11 +44,51 @@ def _check_arg_consistency(datasets):
         If arg is specified on one dataset and not all others.
     """
     specified = False
+    assigned_args = []
     for dataset in datasets:
         if dataset.get('arg'):
+            if dataset['arg'] in assigned_args:
+                raise ArgError(f'arg {dataset["arg"]} already assigned.')
+            assigned_args.append(dataset['arg'])
             specified = True
         if specified and not dataset.get('arg'):
             raise ArgError
+
+
+def _check_dataset_options(datasets):
+    """
+    Ensures that for each dataset, if options are provided that they
+    are valid.
+
+    Parameters
+    ----------
+    datasets: dict[]
+        List of dicts containing the datasets.
+
+    Raises
+    ------
+    OptionError
+        If options do not meet the requirements.
+    """
+    for dataset in datasets:
+        if not dataset.get('opts'):
+            continue
+
+        valid_options = [
+            'row_pattern',
+            'add_rows',
+            'base_row_index',
+            'increment'
+        ]
+        if not all(val in list(dataset['opts'].keys()) for val in valid_options[:2]):  # noqa
+            raise OptionError(f'Options must include {valid_options[:2]}')
+        for key in dataset['opts'].keys():
+            if key not in valid_options:
+                raise OptionError(f'Invalid option {key}.')  # noqa
+        if (dataset['opts']['row_pattern'] not in ['copy']
+                and
+                not callable(dataset['opts']['row_pattern'])):
+            raise OptionError(f'row_pattern option must be one of [\'copy\'] or a function')  # noqa
 
 
 def validate(datasets):
@@ -59,3 +102,4 @@ def validate(datasets):
     """
     _check_col_length(datasets)
     _check_arg_consistency(datasets)
+    _check_dataset_options(datasets)
