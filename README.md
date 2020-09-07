@@ -3,7 +3,9 @@ Python package for quickly creating temporary csv files to help with testing. Th
 
 ## Installation
 
-Not ready just yet.
+```
+pip install quikcsv
+```
 
 ## Sample
 
@@ -105,7 +107,8 @@ The above example applies the same function to the same row again and again, but
     opts=dict(
         add_rows=2,
         row_pattern=lambda x: [n + 1 for n in x],
-        base_row_index=1
+        base_row_index=1,
+        increment=True
     )
 )])
 def csv_func(csv_file):
